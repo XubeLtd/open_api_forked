@@ -1,5 +1,6 @@
 import 'package:codable_forked/cast.dart' as cast;
 import 'package:open_api_forked/src/object.dart';
+import 'package:open_api_forked/src/v3/discriminator.dart';
 import 'package:open_api_forked/src/v3/types.dart';
 
 enum APISchemaAdditionalPropertyPolicy {
@@ -23,7 +24,7 @@ class APISchemaObject extends APIObject {
   APISchemaObject.integer() : type = APIType.integer;
   APISchemaObject.boolean() : type = APIType.boolean;
   APISchemaObject.map(
-      {APIType? ofType, APISchemaObject? ofSchema, bool any: false})
+      {APIType? ofType, APISchemaObject? ofSchema, bool any = false})
       : type = APIType.object {
     if (ofType != null) {
       additionalPropertySchema = APISchemaObject()..type = ofType;
@@ -47,7 +48,7 @@ class APISchemaObject extends APIObject {
     }
   }
   APISchemaObject.object(this.properties) : type = APIType.object;
-  APISchemaObject.file({bool isBase64Encoded: false})
+  APISchemaObject.file({bool isBase64Encoded = false})
       : type = APIType.string,
         format = isBase64Encoded ? "byte" : "binary";
 
@@ -221,7 +222,10 @@ class APISchemaObject extends APIObject {
     _nullable = n;
   }
 
-  // APIDiscriminator discriminator;
+  /// Discriminator information for polymorphic schemas (OpenAPI 3.0 `discriminator`).
+  ///
+  /// This is non-null only when the source schema defines a `discriminator` object.
+  APIDiscriminator? discriminator;
 
   bool? get isReadOnly => _readOnly ?? false;
 
@@ -249,6 +253,7 @@ class APISchemaObject extends APIObject {
   @override
   Map<String, cast.Cast> get castMap => {"required": cast.List(cast.String)};
 
+  @override
   void decode(KeyedArchive object) {
     super.decode(object);
 
@@ -303,8 +308,13 @@ class APISchemaObject extends APIObject {
     _readOnly = object.decode("readOnly");
     _writeOnly = object.decode("writeOnly");
     _deprecated = object.decode("deprecated");
+
+    // Discriminator (if present)
+    discriminator =
+        object.decodeObject('discriminator', () => APIDiscriminator());
   }
 
+  @override
   void encode(KeyedArchive object) {
     super.encode(object);
 
@@ -355,5 +365,8 @@ class APISchemaObject extends APIObject {
     object.encode("readOnly", _readOnly);
     object.encode("writeOnly", _writeOnly);
     object.encode("deprecated", _deprecated);
+
+    // Encode discriminator if present
+    object.encodeObject('discriminator', discriminator);
   }
 }
