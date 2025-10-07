@@ -222,9 +222,6 @@ class APISchemaObject extends APIObject {
     _nullable = n;
   }
 
-  /// Discriminator information for polymorphic schemas (OpenAPI 3.0 `discriminator`).
-  ///
-  /// This is non-null only when the source schema defines a `discriminator` object.
   APIDiscriminator? discriminator;
 
   bool? get isReadOnly => _readOnly ?? false;

@@ -11,12 +11,11 @@ class APIRequestBody extends APIObject {
   }
 
   APIRequestBody.schema(APISchemaObject schema,
-      {Iterable<String> contentTypes: const ["application/json"],
+      {Iterable<String> contentTypes = const ["application/json"],
       this.description,
       bool isRequired = false}) {
     this.isRequired = isRequired;
-    this.content =
-        contentTypes.fold<Map<String, APIMediaType?>>({}, (prev, elem) {
+    content = contentTypes.fold<Map<String, APIMediaType?>>({}, (prev, elem) {
       prev[elem] = APIMediaType(schema: schema);
       return prev;
     });
@@ -43,6 +42,7 @@ class APIRequestBody extends APIObject {
 
   bool _required = false;
 
+  @override
   void decode(KeyedArchive object) {
     super.decode(object);
 
@@ -51,6 +51,7 @@ class APIRequestBody extends APIObject {
     content = object.decodeObjectMap("content", () => APIMediaType())!;
   }
 
+  @override
   void encode(KeyedArchive object) {
     super.encode(object);
 
